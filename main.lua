@@ -20,6 +20,19 @@ local function fail(s, ...)
 	}
 end
 
+local function get_mode()
+
+   local cand = ya.which {
+            cands = {
+                { on = "a", desc = "Select A" },
+                { on = "b", desc = "Select B" },
+                { on = "c", desc = "Select C" },
+            },
+            silent = false,
+        }
+    return cand
+end
+    
 
 return {
 	entry = function()
@@ -30,15 +43,7 @@ return {
 			return ya.notify { title = "Convert Image", content = "No file selected", level = "warn", timeout = 5 }
 		end
 
-   local cand = ya.which {
-            cands = {
-                { on = "a", desc = "Select A" },
-                { on = "b", desc = "Select B" },
-                { on = "c", desc = "Select C" },
-            },
-            silent = false,
-        }
-
+    local cand = get_mode()
     for key, value in pairs(urls)
     do
 		    ya.notify {
