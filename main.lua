@@ -31,7 +31,7 @@ local function fail(s, ...)
 end
 
 local function get_mode()
-	local modes = {"PDF", "PNG", "JPG"}
+	local modes = {"pdf", "png", "jpeg"}
 
    local cand = ya.which {
             cands = {
@@ -44,6 +44,48 @@ local function get_mode()
     return modes[cand]
 end
     
+local function convertImage(type, old_file, new_file)
+	if type == "img" then
+		local output, err_code = Command("magick"):arg(old_file):arg(new_file):stderr(Command.PIPED):output()
+	end
+
+	if type == "doc" then
+		local output, err_code = Command("pandoc"):arg("-o"):arg(new_file):arg(old_file):stderr(Command.PIPED):output()
+	end
+
+	if err_code ~= nil then
+								local msg = string.format("Failed to convert %s to %s", old_file, new_file)
+                ya.notify({
+                    title = msg,
+                    content = "Status: " .. err_code,
+                    level = "error",
+                    timeout = 5,
+                })
+            else
+								local msg = string.format("Successful conversion from %s to %s", old_file, new_file)
+                ya.notify({
+                    title = "Git Init",
+                    content = "Repo initialized" .. output.stderr,
+                    level = "info",
+                    timeout = 5,
+                })
+            end
+end
+
+local function getParentPath(str)
+  sep='/'
+  return str:match("(.*"..sep..")")
+end
+
+local function getType(ext)
+	local images = {"jpeg", "jpg", "heic", "png", "tiff"}
+	for _, img in pairs(images) do
+		if ext == img then
+			return "img"
+		end
+		return "doc"
+	end
+end
 
 return {
 	entry = function()
@@ -58,19 +100,18 @@ return {
     for key, value in pairs(urls)
     do
     		local base_name, extension = splitName(value)
+    		local parent_path = getParentPath(value)
+    		local type = getType(extension)
+    		local new_file = string.format("%s%s.%s", parent_path, base_name, mode)
 		    ya.notify {
 		        title = "mode",
-		        content = string.format("converting %s to %s on %s",extension, mode, base_name),
+		        content = string.format("converting %s to %s on %s new name %s type %s",extension, mode, base_name, new_file, type),
 		        level = "info",
-		        timeout = 5,
+		        timeout = 3,
 		    }
+		    convertImage(type, value, new_file)
+
 		end
 
-		local output, err = Command("touch"):arg(urls):stderr(Command.PIPED):output()
-		if not output then
-			fail("Failed to run chmod: %s", err)
-		elseif not output.status.success then
-			fail("Chmod failed with stderr:\n%s", output.stderr:gsub("^chmod:%s*", ""))
-		end
 	end,
 }
