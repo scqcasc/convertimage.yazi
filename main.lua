@@ -1,5 +1,5 @@
 --- @since 25.5.31
-
+ 
 local selected_or_hovered = ya.sync(function()
 	local tab, paths = cx.active, {}
 	for _, u in pairs(tab.selected) do
@@ -11,6 +11,16 @@ local selected_or_hovered = ya.sync(function()
 	return paths
 end)
 
+local function getOSType()
+	local spilt = package.config:sub(1,1)
+	return spilt == "\\" and "win32" or "unix"
+end
+
+local function splitName( filename )
+	local file_name, extension = filename:match("^.+/(.+)%.(.+)$")
+	return file_name, extension
+end
+	
 local function fail(s, ...)
 	ya.notify {
 		title = "Convert Image",
@@ -47,9 +57,10 @@ return {
     local mode = get_mode()
     for key, value in pairs(urls)
     do
+    		local base_name, extension = splitName(value)
 		    ya.notify {
 		        title = "mode",
-		        content = string.format("selected %s on %s", mode, value),
+		        content = string.format("converting %s to %s on %s",extension, mode, base_name),
 		        level = "info",
 		        timeout = 5,
 		    }
