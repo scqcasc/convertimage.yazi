@@ -47,16 +47,10 @@ end
 local function convertImage(type, old_file, new_file)
 	if type == "img" then
 		local output, err_code = Command("magick"):arg(old_file):arg(new_file):stderr(Command.PIPED):output()
-	end
-
-	if type == "doc" then
-		local output, err_code = Command("pandoc"):arg("-o"):arg(new_file):arg(old_file):stderr(Command.PIPED):output()
-	end
-
 	if err_code ~= nil then
 								local msg = string.format("Failed to convert %s to %s", old_file, new_file)
                 ya.notify({
-                    title = msg,
+                    title = "Convert Error",
                     content = "Status: " .. err_code,
                     level = "error",
                     timeout = 5,
@@ -64,12 +58,35 @@ local function convertImage(type, old_file, new_file)
             else
 								local msg = string.format("Successful conversion from %s to %s", old_file, new_file)
                 ya.notify({
-                    title = "Git Init",
-                    content = "Repo initialized" .. output.stderr,
+                    title = "Convert Success",
+                    content = msg,
                     level = "info",
                     timeout = 5,
                 })
             end
+	end
+
+	if type == "doc" then
+		local output, err_code = Command("pandoc"):arg("-o"):arg(new_file):arg(old_file):stderr(Command.PIPED):output()
+	if err_code ~= nil then
+								local msg = string.format("Failed to convert %s to %s", old_file, new_file)
+                ya.notify({
+                    title = "Convert Error",
+                    content = "Status: " .. err_code,
+                    level = "error",
+                    timeout = 5,
+                })
+            else
+								local msg = string.format("Successful conversion from %s to %s", old_file, new_file)
+                ya.notify({
+                    title = "Convert Success",
+                    content = msg,
+                    level = "info",
+                    timeout = 5,
+                })
+            end
+	end
+
 end
 
 local function getParentPath(str)
@@ -83,8 +100,8 @@ local function getType(ext)
 		if ext == img then
 			return "img"
 		end
-		return "doc"
 	end
+		return "doc"
 end
 
 return {
