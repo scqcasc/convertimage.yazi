@@ -1,3 +1,4 @@
+yazi_types.lua
 test/*
 # Compiled Lua sources
 luac.out

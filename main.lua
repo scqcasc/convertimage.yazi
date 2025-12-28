@@ -11,24 +11,12 @@ local selected_or_hovered = ya.sync(function()
 	return paths
 end)
 
-local function getOSType()
-	local spilt = package.config:sub(1,1)
-	return spilt == "\\" and "win32" or "unix"
-end
 
 local function splitName( filename )
 	local file_name, extension = filename:match("^.+/(.+)%.(.+)$")
 	return file_name, extension
 end
 	
-local function fail(s, ...)
-	ya.notify {
-		title = "Convert Image",
-		content = string.format(s, ...),
-		level = "error",
-		timeout = 5,
-	}
-end
 
 local function get_mode()
 	local modes = {"pdf", "png", "jpeg"}
@@ -44,6 +32,8 @@ local function get_mode()
     return modes[cand]
 end
     
+Timeout = 3
+
 local function convertImage(type, old_file, new_file)
 	if type == "img" then
 		local output, err_code = Command("magick"):arg(old_file):arg(new_file):stderr(Command.PIPED):output()
@@ -53,7 +43,7 @@ local function convertImage(type, old_file, new_file)
                     title = "Convert Error",
                     content = "Status: " .. err_code,
                     level = "error",
-                    timeout = 5,
+                    timeout = Timeout,
                 })
             else
 								local msg = string.format("Successful conversion from %s to %s", old_file, new_file)
@@ -61,7 +51,7 @@ local function convertImage(type, old_file, new_file)
                     title = "Convert Success",
                     content = msg,
                     level = "info",
-                    timeout = 5,
+                    timeout = Timeout,
                 })
             end
 	end
@@ -74,7 +64,7 @@ local function convertImage(type, old_file, new_file)
                     title = "Convert Error",
                     content = "Status: " .. err_code,
                     level = "error",
-                    timeout = 5,
+                    timeout = Timeout,
                 })
             else
 								local msg = string.format("Successful conversion from %s to %s", old_file, new_file)
@@ -82,7 +72,7 @@ local function convertImage(type, old_file, new_file)
                     title = "Convert Success",
                     content = msg,
                     level = "info",
-                    timeout = 5,
+                    timeout = Timeout,
                 })
             end
 	end
@@ -90,7 +80,7 @@ local function convertImage(type, old_file, new_file)
 end
 
 local function getParentPath(str)
-  sep='/'
+  local sep='/'
   return str:match("(.*"..sep..")")
 end
 
@@ -114,18 +104,18 @@ return {
 		end
 
     local mode = get_mode()
-    for key, value in pairs(urls)
+    for _, value in pairs(urls)
     do
     		local base_name, extension = splitName(value)
     		local parent_path = getParentPath(value)
     		local type = getType(extension)
     		local new_file = string.format("%s%s.%s", parent_path, base_name, mode)
-		    ya.notify {
-		        title = "mode",
-		        content = string.format("converting %s to %s on %s new name %s type %s",extension, mode, base_name, new_file, type),
-		        level = "info",
-		        timeout = 3,
-		    }
+		    -- ya.notify {
+		    --     title = "mode",
+		    --     content = string.format("converting %s to %s on %s new name %s type %s",extension, mode, base_name, new_file, type),
+		    --     level = "info",
+		    --     timeout = 3,
+		    -- }
 		    convertImage(type, value, new_file)
 
 		end
