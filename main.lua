@@ -1,5 +1,12 @@
 --- @since 25.5.31
  
+local function display(list, message)
+	for _, item in pairs(list) do
+	  ya.dbg(message)
+	  ya.dbg(item)
+	end
+end
+
 local selected_or_hovered = ya.sync(function()
 	local tab, paths = cx.active, {}
 	for _, u in pairs(tab.selected) do
@@ -17,16 +24,56 @@ local function splitName( filename )
 	return file_name, extension
 end
 	
+local function getList(extension, collection)
+	-- ya.dbg("Getting the list")
+	-- ya.dbg("testing extension " .. extension)
+	display(collection, "This is the list handled by getList ...")
+    for _, item in pairs(collection) do
+	-- ya.dbg("Entering outer loop")
+      for i, ext in pairs(item) do
+			  ya.dbg("Entering inner loop")
+      	ya.dbg("Does " .. ext .. " match " .. extension)
+        if ext == extension then
+            table.remove(item, i)
+            local my_type = item[1]
+            table.remove(item, 1)
+            return item, my_type
+        end
+    end
+  end
+  return nil, nil
+end
 
-local function get_mode()
+local function createMenu(collection, my_extension)
+	ya.dbg("Creating menu")
+	local candy = {}
+	display(collection, "Collection in createMenu ...")
+  -- for _, item in pairs(collection) do
+		ya.dbg("Entering getList")
+    local active_list, my_type = getList(my_extension, collection)
+    ya.dbg("Back from getList")
+    display(active_list, "Here is the active list ...")
+    if ( not(active_list == nil)) then
+       for i, ext in pairs(active_list) do
+       	  local c = { on =  tostring(i), desc = "To " .. ext }
+       	  ya.dbg(c)
+          table.insert(candy, c)
+       end
+       return candy, my_type
+    end
+  -- end
+end
+
+local function get_mode(ext, collection)
+	ya.dbg("Getting the mode")
+
+	display(collection, "displaying collection from get_mode ...")
+	-- need to get the true list based on the used collection
 	local modes = {"pdf", "png", "jpeg"}
-
+	local candy = createMenu(collection, ext)
+	display(candy, "Here is your candy ...")
    local cand = ya.which {
-            cands = {
-                { on = "1", desc = "To PDF" },
-                { on = "2", desc = "To PNG" },
-                { on = "3", desc = "To JPG" },
-            },
+            cands = candy,
             silent = false,
         }
     return modes[cand]
@@ -94,6 +141,17 @@ local function getType(ext)
 		return "doc"
 end
 
+local function findExtension(urls)
+	local extensions = {}
+	for _, url in pairs(urls) do
+		local _, ext = splitName(url)
+		ya.dbg(ext)
+		table.insert(extensions, ext)
+	end
+	return extensions
+end
+
+
 return {
 	entry = function()
 		ya.emit("escape", { visual = true })
@@ -103,19 +161,20 @@ return {
 			return ya.notify { title = "Convert Image", content = "No file selected", level = "warn", timeout = 5 }
 		end
 
-    local mode = get_mode()
+		-- need the extension of selected files here
+    local images = {"images", "jpg", "jpeg", "png", "tiff", "heic", "webp"}
+    local docs = {"docs", "md", "pdf", "docx"}
+		local collection = {images, docs}
+		-- display(collection, "displaying collection from main ...")
+		local exts = findExtension(urls)
+		-- display(exts, "Here are the extensions ...")
+    local mode = get_mode(exts[1], collection)
     for _, value in pairs(urls)
     do
     		local base_name, extension = splitName(value)
     		local parent_path = getParentPath(value)
     		local type = getType(extension)
     		local new_file = string.format("%s%s.%s", parent_path, base_name, mode)
-		    -- ya.notify {
-		    --     title = "mode",
-		    --     content = string.format("converting %s to %s on %s new name %s type %s",extension, mode, base_name, new_file, type),
-		    --     level = "info",
-		    --     timeout = 3,
-		    -- }
 		    convertImage(type, value, new_file)
 
 		end
