@@ -48,11 +48,11 @@ local function createMenu(collection, my_extension)
 	ya.dbg("Creating menu")
 	local candy = {}
 	display(collection, "Collection in createMenu ...")
-  -- for _, item in pairs(collection) do
 		ya.dbg("Entering getList")
     local active_list, my_type = getList(my_extension, collection)
     ya.dbg("Back from getList")
     display(active_list, "Here is the active list ...")
+    -- this creates the menu
     if ( not(active_list == nil)) then
        for i, ext in pairs(active_list) do
        	  local c = { on =  tostring(i), desc = "To " .. ext }
@@ -61,14 +61,12 @@ local function createMenu(collection, my_extension)
        end
        return candy, active_list
     end
-  -- end
 end
 
 local function getMode(ext, collection)
 	ya.dbg("Getting the mode")
 
 	display(collection, "displaying collection from get_mode ...")
-	-- need to get the true list based on the used collection
 	local candy, modes = createMenu(collection, ext)
 	display(candy, "Here is your candy ...")
    local cand = ya.which {
@@ -161,21 +159,23 @@ return {
 		end
 
 		-- need the extension of selected files here
-    local images = {"images", "jpg", "jpeg", "png", "tiff", "heic", "webp"}
-    local docs = {"docs", "md", "pdf", "docx"}
+    local images = {"images","cancel", "jpg", "jpeg", "png", "tiff", "heic", "webp"}
+    local docs = {"docs","cancel", "md", "pdf", "docx"}
 		local collection = {images, docs}
 		-- display(collection, "displaying collection from main ...")
 		local exts = findExtension(urls)
 		-- display(exts, "Here are the extensions ...")
     local mode = getMode(exts[1], collection)
-    for _, value in pairs(urls)
-    do
-    		local base_name, extension = splitName(value)
-    		local parent_path = getParentPath(value)
-    		local type = getType(extension)
-    		local new_file = string.format("%s%s.%s", parent_path, base_name, mode)
-		    convertImage(type, value, new_file)
-
+    if (not (mode == "cancel")) then
+    	for _, value in pairs(urls)
+    	do
+    			local base_name, extension = splitName(value)
+    			local parent_path = getParentPath(value)
+    			local type = getType(extension)
+    			local new_file = string.format("%s%s.%s", parent_path, base_name, mode)
+		    	convertImage(type, value, new_file)
+		    		
+			end
 		end
 
 	end,
