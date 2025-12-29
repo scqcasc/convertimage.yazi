@@ -59,18 +59,17 @@ local function createMenu(collection, my_extension)
        	  ya.dbg(c)
           table.insert(candy, c)
        end
-       return candy, my_type
+       return candy, active_list
     end
   -- end
 end
 
-local function get_mode(ext, collection)
+local function getMode(ext, collection)
 	ya.dbg("Getting the mode")
 
 	display(collection, "displaying collection from get_mode ...")
 	-- need to get the true list based on the used collection
-	local modes = {"pdf", "png", "jpeg"}
-	local candy = createMenu(collection, ext)
+	local candy, modes = createMenu(collection, ext)
 	display(candy, "Here is your candy ...")
    local cand = ya.which {
             cands = candy,
@@ -168,7 +167,7 @@ return {
 		-- display(collection, "displaying collection from main ...")
 		local exts = findExtension(urls)
 		-- display(exts, "Here are the extensions ...")
-    local mode = get_mode(exts[1], collection)
+    local mode = getMode(exts[1], collection)
     for _, value in pairs(urls)
     do
     		local base_name, extension = splitName(value)
