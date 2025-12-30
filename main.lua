@@ -18,7 +18,6 @@ local selected_or_hovered = ya.sync(function()
 	return paths
 end)
 
-
 local function splitName( filename )
 	local file_name, extension = filename:match("^.+/(.+)%.(.+)$")
 	return file_name, extension
@@ -78,51 +77,6 @@ end
     
 Timeout = 3
 
-local function convertImage(type, old_file, new_file)
-	if type == "img" then
-		local output, err_code = Command("magick"):arg(old_file):arg(new_file):stderr(Command.PIPED):output()
-	if err_code ~= nil then
-								local msg = string.format("Failed to convert %s to %s", old_file, new_file)
-                ya.notify({
-                    title = "Convert Error",
-                    content = "Status: " .. err_code,
-                    level = "error",
-                    timeout = Timeout,
-                })
-            else
-								local msg = string.format("Successful conversion from %s to %s", old_file, new_file)
-                ya.notify({
-                    title = "Convert Success",
-                    content = msg,
-                    level = "info",
-                    timeout = Timeout,
-                })
-            end
-	end
-
-	if type == "doc" then
-		local output, err_code = Command("pandoc"):arg("-o"):arg(new_file):arg(old_file):stderr(Command.PIPED):output()
-	if err_code ~= nil then
-								local msg = string.format("Failed to convert %s to %s", old_file, new_file)
-                ya.notify({
-                    title = "Convert Error",
-                    content = "Status: " .. err_code,
-                    level = "error",
-                    timeout = Timeout,
-                })
-            else
-								local msg = string.format("Successful conversion from %s to %s", old_file, new_file)
-                ya.notify({
-                    title = "Convert Success",
-                    content = msg,
-                    level = "info",
-                    timeout = Timeout,
-                })
-            end
-	end
-
-end
-
 local function getParentPath(str)
   local sep='/'
   return str:match("(.*"..sep..")")
@@ -147,6 +101,78 @@ local function findExtension(urls)
 	end
 	return extensions
 end
+
+local function convertImage(type, old_file, new_file)
+	if type == "img" then
+		local output, err_code = Command("magick"):arg(old_file):arg(new_file):stderr(Command.PIPED):output()
+	if err_code ~= nil then
+								local msg = string.format("Failed to convert %s to %s", old_file, new_file)
+                ya.notify({
+                    title = "Convert Error",
+                    content = "Status: " .. err_code,
+                    level = "error",
+                    timeout = Timeout,
+                })
+            else
+								local msg = string.format("Successful conversion from %s to %s", old_file, new_file)
+                ya.notify({
+                    title = "Convert Success",
+                    content = msg,
+                    level = "info",
+                    timeout = Timeout,
+                })
+            end
+	end
+
+	if type == "doc" then
+		local _, old_ext = splitName(old_file)
+		local parentdir = getParentPath(old_file)
+		ya.dbg("Parentdir " .. parentdir)
+		if (old_ext == "pdf") then
+			local _, err_code = Command("pdf2doc.sh")
+				:arg(old_file)
+				:arg(new_file)
+				:stderr(Command.PIPED):output()
+				if err_code ~= nil then
+					local msg = string.format("Failed to convert %s to %s", old_file, new_file)
+          ya.notify({
+             title = "Convert Error",
+             content = "Status: " .. err_code,
+             level = "error",
+             timeout = Timeout,
+          })
+          else
+						local msg = string.format("Successful conversion from %s to %s", old_file, new_file)
+              ya.notify({
+                title = "Convert Success",
+                content = msg,
+                level = "info",
+                timeout = Timeout,
+            })
+          end
+  else
+		local _, err_code = Command("pandoc"):arg("-o"):arg(new_file):arg(old_file):stderr(Command.PIPED):output()
+	if err_code ~= nil then
+								local msg = string.format("Failed to convert %s to %s", old_file, new_file)
+                ya.notify({
+                    title = "Convert Error",
+                    content = "Status: " .. err_code,
+                    level = "error",
+                    timeout = Timeout,
+                })
+            else
+								local msg = string.format("Successful conversion from %s to %s", old_file, new_file)
+                ya.notify({
+                    title = "Convert Success",
+                    content = msg,
+                    level = "info",
+                    timeout = Timeout,
+                })
+            end
+	end
+end
+end
+
 
 
 return {
