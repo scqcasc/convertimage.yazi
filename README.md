@@ -25,3 +25,13 @@ ya pkg add scqcasc/convertimage
 ```
 git clone https://github.com/scqcasc/convertimage.yazi ~/.config/yazi/plugins/convertimage.yazi
 ```
+
+## Configuration
+add this to your **keymap.toml** file
+```toml
+[[mgr.prepend_keymap]]
+on   = [ "g", "C" ]
+run  = "plugin convertimage"
+desc = "run convertimage"
+```
+you can customize the keybinding however you like. Please refer to the [keymap.toml](https://yazi-rs.github.io/docs/configuration/keymap) documentation
