@@ -126,6 +126,7 @@ local function convertImage(type, old_file, new_file)
 
 	if type == "doc" then
 		local _, old_ext = splitName(old_file)
+		local _, new_ext = splitName(new_file)
 		local parentdir = getParentPath(old_file)
 		ya.dbg("Parentdir " .. parentdir)
 		if (old_ext == "pdf") then
@@ -151,7 +152,12 @@ local function convertImage(type, old_file, new_file)
             })
           end
   else
-		local _, err_code = Command("pandoc"):arg("-o"):arg(new_file):arg(old_file):stderr(Command.PIPED):output()
+    if (old_ext == "md") then
+			local _, err_code = Command("pandoc"):arg("-F"):arg("mermaid-filter"):arg(old_file):arg("-o"):arg(new_file):stderr(Command.PIPED):output()
+    	
+		else
+			local _, err_code = Command("pandoc"):arg("-o"):arg(new_file):arg(old_file):stderr(Command.PIPED):output()
+		end
 	if err_code ~= nil then
 								local msg = string.format("Failed to convert %s to %s", old_file, new_file)
                 ya.notify({
@@ -186,7 +192,7 @@ return {
 
 		-- need the extension of selected files here
     local images = {"images","cancel", "jpg", "jpeg", "png", "tiff", "heic", "webp"}
-    local docs = {"docs","cancel", "md", "pdf", "docx"}
+    local docs = {"docs","cancel", "md", "pdf", "docx","pptx"}
 		local collection = {images, docs}
 		-- display(collection, "displaying collection from main ...")
 		local exts = findExtension(urls)
